@@ -47,3 +47,49 @@ func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 	_, _ = fmt.Fprint(w, fn(str))
 }
+
+type Bubble struct {
+	List     list.Model
+	Choice   string
+	Quitting bool
+}
+
+func (m Bubble) Init() tea.Cmd {
+	return nil
+}
+func (m Bubble) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.List.SetWidth(msg.Width)
+		m.List.SetHeight(msg.Height)
+		return m, nil
+
+	case tea.KeyMsg:
+		switch keypress := msg.String(); keypress {
+		case "q", "ctrl+c":
+			m.Quitting = true
+			return m, tea.Quit
+
+		case "enter":
+			i, ok := m.List.SelectedItem().(Item)
+			if ok {
+				m.Choice = string(i)
+			}
+			return m, tea.Quit
+		}
+	}
+
+	var cmd tea.Cmd
+	m.List, cmd = m.List.Update(msg)
+	return m, cmd
+}
+
+func (m Bubble) View() string {
+	if m.Choice != "" {
+		return QuitTextStyle.Render(fmt.Sprintf("%s? Sounds good to me.", m.Choice))
+	}
+	if m.Quitting {
+		return QuitTextStyle.Render("Not hungry? That’s cool.")
+	}
+	return "\n" + m.List.View()
+}

@@ -1,7 +1,7 @@
 package main
 
 import (
-	bastionModel "bastion/model"
+	"bastion/model"
 	"bastion/repository"
 	"bastion/service"
 	"bastion/utils"
@@ -71,7 +71,7 @@ func main() {
 					_, _ = fmt.Fprintf(session, "Error running program: %v\n", err)
 					_ = session.Exit(1)
 				}
-				chosen := finalModel.(model).choice
+				chosen := finalModel.(model.Bubble).Choice
 				if chosen == "" {
 					_, _ = fmt.Fprintln(session, "❌ 未选择主机，退出")
 					_ = session.Exit(0)
@@ -94,61 +94,15 @@ func main() {
 	log.Fatal(server.ListenAndServe())
 }
 
-type model struct {
-	list     list.Model
-	choice   string
-	quitting bool
-}
-
-func (m model) Init() tea.Cmd {
-	return nil
-}
-
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.list.SetWidth(msg.Width)
-		m.list.SetHeight(msg.Height)
-		return m, nil
-
-	case tea.KeyMsg:
-		switch keypress := msg.String(); keypress {
-		case "q", "ctrl+c":
-			m.quitting = true
-			return m, tea.Quit
-
-		case "enter":
-			i, ok := m.list.SelectedItem().(bastionModel.Item)
-			if ok {
-				m.choice = string(i)
-			}
-			return m, tea.Quit
-		}
-	}
-
-	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
-	return m, cmd
-}
-
-func (m model) View() string {
-	if m.choice != "" {
-		return bastionModel.QuitTextStyle.Render(fmt.Sprintf("%s? Sounds good to me.", m.choice))
-	}
-	if m.quitting {
-		return bastionModel.QuitTextStyle.Render("Not hungry? That’s cool.")
-	}
-	return "\n" + m.list.View()
-}
-
-func initialModel() model {
-	l := list.New(bastionModel.DefaultVMList, bastionModel.ItemDelegate{}, 20, 0)
+func initialModel() model.Bubble {
+	l := list.New(model.DefaultVMList, model.ItemDelegate{}, 20, 0)
 	l.Title = "请选择要连接的机器："
 	l.SetShowStatusBar(false)
-	l.SetFilteringEnabled(false)
-	l.Styles.Title = bastionModel.TitleStyle
-	l.Styles.PaginationStyle = bastionModel.PaginationStyle
-	l.Styles.HelpStyle = bastionModel.HelpStyle
+	l.SetFilteringEnabled(true)
+	l.SetShowFilter(false)
+	l.Styles.Title = model.TitleStyle
+	l.Styles.PaginationStyle = model.PaginationStyle
+	l.Styles.HelpStyle = model.HelpStyle
 
-	return model{list: l}
+	return model.Bubble{List: l}
 }
