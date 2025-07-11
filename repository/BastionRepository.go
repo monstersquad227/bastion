@@ -4,7 +4,7 @@ import "bastion/model"
 
 type BastionRepository struct{}
 
-func (b *BastionRepository) List(userId int) ([]*model.Machine, error) {
+func (repo *BastionRepository) List(userId int) ([]*model.Machine, error) {
 	query := "SELECT " +
 		"	v.instance_name, " +
 		"	v.private_ip, " +
@@ -30,4 +30,19 @@ func (b *BastionRepository) List(userId int) ([]*model.Machine, error) {
 		data = append(data, &obj)
 	}
 	return data, nil
+}
+
+func (repo *BastionRepository) GetPassword(privateIp string) (string, error) {
+	query := "SELECT " +
+		"	password " +
+		"FROM " +
+		"	vm " +
+		"WHERE " +
+		"	private_ip = ? "
+	var encryptText string
+	err := MysqlClient.QueryRow(query, privateIp).Scan(&encryptText)
+	if err != nil {
+		return "", err
+	}
+	return encryptText, nil
 }

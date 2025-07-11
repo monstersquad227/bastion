@@ -23,3 +23,7 @@ func (svc *BastionService) List(userId int) ([]list.Item, error) {
 	}
 	return items, nil
 }
+
+func (svc *BastionService) GetPasswordByIp(privateIp string) (string, error) {
+	return svc.BastionRepository.GetPassword(privateIp)
+}

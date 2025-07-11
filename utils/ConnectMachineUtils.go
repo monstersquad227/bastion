@@ -1,16 +1,30 @@
 package utils
 
 import (
+	"bastion/repository"
+	"bastion/service"
 	"errors"
 	gliderssh "github.com/gliderlabs/ssh"
 	"golang.org/x/crypto/ssh"
 )
 
 func ConnectMachine(session gliderssh.Session, machine string) error {
+	bastionSvc := &service.BastionService{
+		BastionRepository: &repository.BastionRepository{},
+	}
+	encryptText, err := bastionSvc.GetPasswordByIp(machine)
+	if err != nil {
+		return err
+	}
+	plainPassword, err := DecryptPassword(encryptText)
+	if err != nil {
+		return err
+	}
+
 	config := &ssh.ClientConfig{
 		User: "root", // 目标主机的用户名
 		Auth: []ssh.AuthMethod{
-			ssh.Password("mojory@1q2w3e4r"), // 替换为目标主机的真实密码
+			ssh.Password(plainPassword), // 替换为目标主机的真实密码
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // 生产环境应验证主机密钥
 	}
