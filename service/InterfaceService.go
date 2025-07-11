@@ -3,5 +3,9 @@ package service
 import "github.com/charmbracelet/bubbles/list"
 
 type BastionServiceInterface interface {
-	List() ([]list.Item, error)
+	List(userId int) ([]list.Item, error)
+}
+
+type UserServiceInterface interface {
+	GetUserId(account string) (int, error)
 }

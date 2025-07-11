@@ -11,12 +11,8 @@ type BastionService struct {
 	BastionRepository *repository.BastionRepository
 }
 
-type item string
-
-func (i item) FilterValue() string { return "" }
-
-func (svc *BastionService) List() ([]list.Item, error) {
-	machines, err := svc.BastionRepository.List(3)
+func (svc *BastionService) List(userId int) ([]list.Item, error) {
+	machines, err := svc.BastionRepository.List(userId)
 	if err != nil {
 		return nil, err
 	}

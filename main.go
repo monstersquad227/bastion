@@ -10,15 +10,19 @@ import (
 
 func main() {
 	repository.InitMysql()
-	svc := &service.BastionService{
+	service.InitOpenLdap()
+	bastionSvc := &service.BastionService{
 		BastionRepository: &repository.BastionRepository{},
+	}
+	userSvc := &service.UserService{
+		UserRepository: &repository.UserRepository{},
 	}
 
 	server := &gliderssh.Server{
 		Addr:    ":42678",
 		Handler: utils.GliderSSHHandler,
 		PasswordHandler: func(ctx gliderssh.Context, pass string) bool {
-			return utils.ValidateUser(ctx.User(), pass, svc)
+			return utils.ValidateUser(ctx.User(), pass, bastionSvc, userSvc)
 		},
 	}
 	log.Printf("starting gliderssh server at %s", server.Addr)
